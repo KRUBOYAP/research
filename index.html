@@ -3,112 +3,265 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบวิเคราะห์และประเมินข้อเสนอโครงงานคอมพิวเตอร์</title>
+    <title>Research Proposal Visual Canvas & Evaluator</title>
     <style>
         :root {
             --primary: #2563eb;
+            --primary-dark: #1d4ed8;
             --bg: #f8fafc;
             --card: #ffffff;
-            --text: #1e293b;
+            --text: #0f172a;
+            --text-muted: #64748b;
             --border: #e2e8f0;
             --success: #16a34a;
-            --warning: #ca8a04;
+            --danger: #dc2626;
         }
-        body { font-family: 'Sarabun', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
-        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: var(--card); padding: 24px; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        h1, h2, h3 { margin-top: 0; color: #0f172a; }
-        .form-group { margin-bottom: 14px; }
-        label { display: block; font-weight: 600; margin-bottom: 4px; font-size: 0.9rem; }
-        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
-        textarea { resize: vertical; min-height: 70px; }
-        button { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; transition: background 0.2s; }
-        button:hover { opacity: 0.9; }
-        .score-box { text-align: center; padding: 20px; border-radius: 8px; margin-bottom: 20px; background: #eff6ff; }
-        .score-number { font-size: 3rem; font-weight: 800; color: var(--primary); }
-        .verdict { font-size: 1.4rem; font-weight: bold; margin-top: 8px; }
-        .approved { color: var(--success); }
-        .needs-improvement { color: var(--warning); }
-        .feedback-item { margin-bottom: 12px; padding: 10px; border-left: 4px solid var(--primary); background: #f1f5f9; font-size: 0.88rem; }
+
+        * { box-sizing: border-box; }
+        body { font-family: 'Sarabun', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        
+        .header { text-align: center; margin-bottom: 24px; }
+        .header h1 { margin: 0; color: var(--primary-dark); font-size: 1.8rem; }
+        .header p { color: var(--text-muted); margin-top: 4px; }
+
+        .app-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; max-width: 1300px; margin: 0 auto; }
+        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+        
+        /* Tab Navigation */
+        .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+        .tab-btn { background: none; border: none; padding: 8px 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
+        .tab-btn.active { background: #eff6ff; color: var(--primary); }
+
+        /* Form styling */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .form-full { grid-column: span 2; }
+        .form-group { margin-bottom: 12px; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
+        input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; }
+        textarea { resize: vertical; min-height: 60px; }
+        
+        button.btn-eval { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
+        button.btn-eval:hover { background: var(--primary-dark); }
+
+        /* Dashboard & Canvas Styles */
+        .canvas-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        .canvas-card { width: 100%; text-align: center; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+        canvas { max-width: 100%; height: auto; }
+
+        .verdict-box { margin-top: 12px; padding: 12px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 1.1rem; }
+        .verdict-approved { background: #dcfce7; color: var(--success); }
+        .verdict-rejected { background: #fee2e2; color: var(--danger); }
+
+        .feedback-box { margin-top: 16px; text-align: left; }
+        .feedback-item { font-size: 0.85rem; padding: 8px; margin-bottom: 6px; border-left: 3px solid var(--primary); background: #f1f5f9; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <!-- ฟอร์มกรอกข้อมูลโครงงาน -->
+<div class="header">
+    <h1>Research Proposal Canvas & Evaluator</h1>
+    <p>ระบบวิเคราะห์และประเมินข้อเสนอโครงงานคอมพิวเตอร์ ด้วย HTML5 Canvas Dashboard</p>
+</div>
+
+<div class="app-layout">
+
+    <!-- ฝั่งที่ 1: กรอกข้อมูลและ Research Canvas -->
     <div class="card">
-        <h2>แบบเสนอโครงงานคอมพิวเตอร์</h2>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="switchTab('form')">แบบฟอร์มเสนอโครงงาน (ข้อ 1-13)</button>
+        </div>
+
         <form id="proposalForm">
-            <div class="form-group">
-                <label>1. ชื่อโครงงาน</label>
-                <input type="text" id="title" placeholder="ระบุชื่อโครงงาน...">
+            <div id="tabForm" class="form-grid">
+                <div class="form-group form-full">
+                    <label>1. ชื่อโครงงาน</label>
+                    <input type="text" id="title" placeholder="เช่น ระบบวิเคราะห์ภาพถ่ายดาวเทียมเพื่อการเกษตร">
+                </div>
+                <div class="form-group">
+                    <label>2. ประเภทโครงงาน</label>
+                    <input type="text" id="type" placeholder="ซอฟต์แวร์ / สื่อ / IoT / ฮาร์ดแวร์">
+                </div>
+                <div class="form-group">
+                    <label>3. ชื่อผู้จัดทำโครงงาน (ข้อ 1-2)</label>
+                    <input type="text" id="authors" placeholder="ชื่อ-นามสกุล สมาชิก">
+                </div>
+                <div class="form-group">
+                    <label>4-5. ครูที่ปรึกษา / ร่วม</label>
+                    <input type="text" id="advisors" placeholder="ชื่อครูที่ปรึกษา">
+                </div>
+                <div class="form-group">
+                    <label>6. ระยะเวลาดำเนินงาน</label>
+                    <input type="text" id="duration" placeholder="ระบุช่วงเวลาปฏิบัติงาน">
+                </div>
+                <div class="form-group form-full">
+                    <label>7. แนวคิด ที่มา และความสำคัญ</label>
+                    <textarea id="rationale" placeholder="ระบุสภาพปัญหา ความจำเป็น และโซลูชัน..."></textarea>
+                </div>
+                <div class="form-group form-full">
+                    <label>8. วัตถุประสงค์ (ระบุเป็นข้อๆ)</label>
+                    <textarea id="objectives" placeholder="1) เพื่อ...&#10;2) เพื่อ..."></textarea>
+                </div>
+                <div class="form-group form-full">
+                    <label>9. หลักการและทฤษฎี</label>
+                    <textarea id="theory" placeholder="ทฤษฎี ภาษาโปรแกรม เทคโนโลยี หรือ Algorithm ที่เลือกใช้..."></textarea>
+                </div>
+                <div class="form-group form-full">
+                    <label>10-11. วิธีดำเนินงาน และ ขั้นตอนการปฏิบัติงาน</label>
+                    <textarea id="methodology" placeholder="ขั้นตอนการทำงาน วัสดุอุปกรณ์ งบประมาณ และตารางเวลา..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>12. ผลที่คาดว่าจะได้รับ</label>
+                    <textarea id="expectedResults" placeholder="ประโยชน์หรือระบบที่คาดว่าจะได้รับ..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>13. เอกสารอ้างอิง</label>
+                    <textarea id="references" placeholder="ระบุแหล่งอ้างอิงมาตรฐาน..."></textarea>
+                </div>
             </div>
-            <div class="form-group">
-                <label>2. ประเภทโครงงาน</label>
-                <input type="text" id="type" placeholder="เช่น การพัฒนาระบบซอฟต์แวร์ / สื่อการเรียนรู้">
-            </div>
-            <div class="form-group">
-                <label>3. ผู้จัดทำโครงงาน (ใส่เครื่องหมาย , คั่นชื่อ)</label>
-                <input type="text" id="authors" placeholder="ชื่อคนที่ 1, ชื่อคนที่ 2">
-            </div>
-            <div class="form-group">
-                <label>4-5. ครูที่ปรึกษา / ครูที่ปรึกษาร่วม</label>
-                <input type="text" id="advisors" placeholder="ชื่อครูที่ปรึกษา">
-            </div>
-            <div class="form-group">
-                <label>6. ระยะเวลาดำเนินงาน</label>
-                <input type="text" id="duration" placeholder="เช่น 1 พฤศจิกายน 2568 - 31 มีนาคม 2569">
-            </div>
-            <div class="form-group">
-                <label>7. แนวคิด ที่มา และความสำคัญ</label>
-                <textarea id="rationale" placeholder="อธิบายปัญหา ความจำเป็น และแนวคิดการแก้ปัญหา..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>8. วัตถุประสงค์ (ระบุเป็นข้อๆ)</label>
-                <textarea id="objectives" placeholder="1) เพื่อพัฒนา...&#10;2) เพื่อทดสอบ..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>9. หลักการและทฤษฎี</label>
-                <textarea id="theory" placeholder="ระบุเทคโนโลยี ภาษา หรือทฤษฎีที่เกี่ยวข้อง..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>10-11. วิธีดำเนินงาน และ ขั้นตอนการปฏิบัติ</label>
-                <textarea id="methodology" placeholder="ระบุขั้นตอนการทำงาน วัสดุอุปกรณ์ งบประมาณ และตารางเวลา..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>12. ผลที่คาดว่าจะได้รับ</label>
-                <textarea id="expectedResults" placeholder="1) ได้แอปพลิเคชัน...&#10;2) ผู้ใช้มีความพึงพอใจ..."></textarea>
-            </div>
-            <div class="form-group">
-                <label>13. เอกสารอ้างอิง</label>
-                <textarea id="references" placeholder="1) ชื่อผู้แต่ง. (ปี). ชื่อหนังสือ/บทความ..."></textarea>
-            </div>
-            <button type="button" onclick="evaluateProposal()">วิเคราะห์และประเมินผล</button>
+
+            <button type="button" class="btn-eval" onclick="processEvaluation()">วิเคราะห์ และวาด Canvas Dashboard</button>
         </form>
     </div>
 
-    <!-- ส่วนแสดงผลการวิเคราะห์และคะแนน -->
-    <div class="card">
-        <h2>ผลการวิเคราะห์และประเมิน</h2>
-        <div class="score-box">
-            <div>คะแนนรวมที่ได้</div>
-            <div class="score-number" id="totalScore">0 / 100</div>
-            <div class="verdict" id="verdictStatus">รอการประเมิน</div>
+    <!-- ฝั่งที่ 2: Canvas Visualizations & Evaluation Report -->
+    <div class="card canvas-container">
+        <h3>ผลการประเมินเชิงทัศนภาพ (Canvas Analytics)</h3>
+
+        <!-- Canvas 1: Gauge Chart -->
+        <div class="canvas-card">
+            <h4>คะแนนความสมบูรณ์รวม (Total Score)</h4>
+            <canvas id="gaugeCanvas" width="280" height="160"></canvas>
+            <div id="verdictBox" class="verdict-box" style="display:none;"></div>
         </div>
 
-        <h3>ข้อเสนอแนะรายข้อ</h3>
-        <div id="feedbackList">
-            <p style="color: #64748b;">กรอกข้อมูลโครงงานและกดปุ่ม "วิเคราะห์และประเมินผล" เพื่อดูรายงาน</p>
+        <!-- Canvas 2: Radar Spider Chart -->
+        <div class="canvas-card">
+            <h4>การวิเคราะห์ศักยภาพ 4 มิติ (Radar Metrics)</h4>
+            <canvas id="radarCanvas" width="300" height="260"></canvas>
+        </div>
+
+        <!-- Feedback Log -->
+        <div class="feedback-box" id="feedbackList">
+            <p style="text-align:center; color: var(--text-muted); font-size: 0.9rem;">
+                กดปุ่ม "วิเคราะห์" เพื่อสร้างกราฟ Canvas และรายงานผล
+            </p>
         </div>
     </div>
+
 </div>
 
 <script>
-function evaluateProposal() {
-    let score = 0;
-    let feedback = [];
+// --- HTML5 Canvas Drawing Functions ---
 
-    // Extract Values
+// 1. Draw Semi-Circle Gauge Chart
+function drawGauge(score) {
+    const canvas = document.getElementById('gaugeCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height - 30;
+    const radius = 90;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background track
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
+    ctx.lineWidth = 18;
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Progress track
+    const progressAngle = Math.PI + (score / 100) * Math.PI;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, Math.PI, progressAngle);
+    ctx.lineWidth = 18;
+    ctx.strokeStyle = score >= 60 ? '#16a34a' : (score >= 40 ? '#ca8a04' : '#dc2626');
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Score Text
+    ctx.fillStyle = '#0f172a';
+    ctx.font = 'bold 32px Sarabun, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`${score}/100`, cx, cy - 15);
+
+    ctx.fillStyle = '#64748b';
+    ctx.font = '14px Sarabun, sans-serif';
+    ctx.fillText('คะแนนประเมินรวม', cx, cy + 15);
+}
+
+// 2. Draw 4-Axis Radar (Spider) Chart
+function drawRadarChart(scoresNormalized) {
+    const canvas = document.getElementById('radarCanvas');
+    const ctx = canvas.getContext('2d');
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2 + 10;
+    const radius = 80;
+
+    const labels = ['ข้อมูลทั่วไป', 'ที่มา & วัตถุประสงค์', 'ทฤษฎี & วิธีทำ', 'ผลลัพธ์ & อ้างอิง'];
+    const numAxes = labels.length;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Grid concentric circles
+    for (let level = 1; level <= 4; level++) {
+        ctx.beginPath();
+        const r = (radius / 4) * level;
+        for (let i = 0; i < numAxes; i++) {
+            const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
+            const x = cx + r * Math.cos(angle);
+            const y = cy + r * Math.sin(angle);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = '#cbd5e1';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+    }
+
+    // Axes & Axis Labels
+    for (let i = 0; i < numAxes; i++) {
+        const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
+        const x = cx + radius * Math.cos(angle);
+        const y = cy + radius * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.lineTo(x, y);
+        ctx.strokeStyle = '#94a3b8';
+        ctx.stroke();
+
+        // Label position adjustment
+        const lx = cx + (radius + 28) * Math.cos(angle);
+        const ly = cy + (radius + 14) * Math.sin(angle);
+        ctx.fillStyle = '#334155';
+        ctx.font = '11px Sarabun, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(labels[i], lx, ly);
+    }
+
+    // Polygon Data Plot
+    ctx.beginPath();
+    for (let i = 0; i < numAxes; i++) {
+        const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
+        const r = radius * scoresNormalized[i];
+        const x = cx + r * Math.cos(angle);
+        const y = cy + r * Math.sin(angle);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.35)';
+    ctx.fill();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+}
+
+// --- Logic Evaluation System ---
+function processEvaluation() {
     const title = document.getElementById('title').value.trim();
     const type = document.getElementById('type').value.trim();
     const authors = document.getElementById('authors').value.trim();
@@ -121,79 +274,64 @@ function evaluateProposal() {
     const results = document.getElementById('expectedResults').value.trim();
     const references = document.getElementById('references').value.trim();
 
-    // 1. General Info Evaluation (10 pts)
-    let infoScore = 0;
-    if (title) infoScore += 2;
-    if (type) infoScore += 2;
-    if (authors) infoScore += 2;
-    if (advisors) infoScore += 2;
-    if (duration) infoScore += 2;
-    score += infoScore;
-    feedback.push({ section: "ข้อมูลทั่วไป (ข้อ 1-6)", score: infoScore, max: 10, note: infoScore === 10 ? "ครบถ้วนสมบูรณ์" : "ควรระบุข้อมูลพื้นฐาน ผู้จัดทำ ครูที่ปรึกษา และระยะเวลาให้ครบถ้วน" });
+    // 1. General Info Score (Max 10)
+    let s1 = 0;
+    if (title) s1 += 2;
+    if (type) s1 += 2;
+    if (authors) s1 += 2;
+    if (advisors) s1 += 2;
+    if (duration) s1 += 2;
 
-    // 2. Rationale & Objectives (35 pts)
-    let rationaleScore = 0;
-    if (rationale.length > 100) rationaleScore += 15;
-    else if (rationale.length > 30) rationaleScore += 8;
+    // 2. Rationale & Objectives (Max 35)
+    let s2 = 0;
+    if (rationale.length > 80) s2 += 15; else if (rationale.length > 20) s2 += 8;
+    if (objectives.includes('1') || objectives.includes('-')) s2 += 20; else if (objectives.length > 15) s2 += 10;
 
-    let objScore = 0;
-    if (objectives.includes("1)") || objectives.includes("1.")) objScore += 20;
-    else if (objectives.length > 20) objScore += 10;
+    // 3. Theory & Methodology (Max 35)
+    let s3 = 0;
+    if (theory.length > 40) s3 += 15; else if (theory.length > 10) s3 += 7;
+    if (methodology.length > 60) s3 += 20; else if (methodology.length > 15) s3 += 10;
 
-    const bgScore = rationaleScore + objScore;
-    score += bgScore;
-    feedback.push({ 
-        section: "ความสำคัญและวัตถุประสงค์ (ข้อ 7-8)", 
-        score: bgScore, 
-        max: 35, 
-        note: `ที่มาและความสำคัญ ${rationaleScore}/15, วัตถุประสงค์ ${objScore}/20. ` + (objScore < 20 ? "แนะนำให้เขียนวัตถุประสงค์แยกเป็นข้อๆ ชัดเจน (เช่น 1), 2))" : "วัตถุประสงค์จัดโครงสร้างได้ดี")
-    });
+    // 4. Expected Results & References (Max 20)
+    let s4 = 0;
+    if (results.length > 20) s4 += 10; else if (results.length > 5) s4 += 5;
+    if (references.length > 20 || references.includes('http')) s4 += 10; else if (references.length > 5) s4 += 5;
 
-    // 3. Theory & Methodology (35 pts)
-    let theoryScore = theory.length > 50 ? 15 : (theory.length > 10 ? 8 : 0);
-    let methodScore = methodology.length > 80 ? 20 : (methodology.length > 20 ? 10 : 0);
-    const techScore = theoryScore + methodScore;
-    score += techScore;
-    feedback.push({
-        section: "ทฤษฎีและวิธีดำเนินงาน (ข้อ 9-11)",
-        score: techScore,
-        max: 35,
-        note: `หลักการทฤษฎี ${theoryScore}/15, วิธีดำเนินงาน ${methodScore}/20. ` + (methodScore < 20 ? "ควรเพิ่มรายละเอียดขั้นตอนการพัฒนาระบบ อุปกรณ์ งบประมาณ และตารางเวลาปฏิบัติงาน" : "รายละเอียดครอบคลุม")
-    });
+    const totalScore = s1 + s2 + s3 + s4;
 
-    // 4. Expected Results & References (20 pts)
-    let resScore = results.length > 30 ? 10 : (results.length > 5 ? 5 : 0);
-    let refScore = (references.includes("http") || references.length > 30) ? 10 : (references.length > 5 ? 5 : 0);
-    const outScore = resScore + refScore;
-    score += outScore;
-    feedback.push({
-        section: "ผลที่คาดว่าจะได้รับและเอกสารอ้างอิง (ข้อ 12-13)",
-        score: outScore,
-        max: 20,
-        note: `ผลที่คาดว่าจะได้รับ ${resScore}/10, เอกสารอ้างอิง ${refScore}/10. ` + (refScore < 10 ? "ควรเพิ่มการอ้างอิงหนังสือ วารสาร หรือแหล่งข้อมูลออนไลน์ให้เป็นรูปแบบมาตรฐาน" : "ระบุแหล่งอ้างอิงชัดเจน")
-    });
+    // Normalized scores for Radar Chart (0.0 to 1.0 scale)
+    const normScores = [s1 / 10, s2 / 35, s3 / 35, s4 / 20];
 
-    // Display Output
-    document.getElementById('totalScore').innerText = `${score} / 100`;
-    const verdictEl = document.getElementById('verdictStatus');
-    
-    if (score >= 60) {
-        verdictEl.innerText = "ผลการพิจารณา: อนุมัติ";
-        verdictEl.className = "verdict approved";
+    // Render Canvas Visualizations
+    drawGauge(totalScore);
+    drawRadarChart(normScores);
+
+    // Verdict Output
+    const verdictBox = document.getElementById('verdictBox');
+    verdictBox.style.display = 'block';
+    if (totalScore >= 60) {
+        verdictBox.innerText = 'ผลการพิจารณา: อนุมัติ (Pass)';
+        verdictBox.className = 'verdict-box verdict-approved';
     } else {
-        verdictEl.innerText = "ผลการพิจารณา: ควรปรับปรุง";
-        verdictEl.className = "verdict needs-improvement";
+        verdictBox.innerText = 'ผลการพิจารณา: ควรปรับปรุง (Needs Work)';
+        verdictBox.className = 'verdict-box verdict-rejected';
     }
 
-    // Render Feedback
+    // Detailed Log Feedback
     const feedbackList = document.getElementById('feedbackList');
-    feedbackList.innerHTML = feedback.map(item => `
-        <div class="feedback-item">
-            <strong>${item.section}</strong> — <span>${item.score}/${item.max} คะแนน</span>
-            <div>${item.note}</div>
-        </div>
-    `).join('');
+    feedbackList.innerHTML = `
+        <div class="feedback-item"><strong>1. ข้อมูลทั่วไป:</strong> ${s1}/10 คะแนน</div>
+        <div class="feedback-item"><strong>2. ที่มา & วัตถุประสงค์:</strong> ${s2}/35 คะแนน ${s2 < 25 ? '(ควรแจกลูกย่อยวัตถุประสงค์)' : ''}</div>
+        <div class="feedback-item"><strong>3. ทฤษฎี & วิธีดำเนินงาน:</strong> ${s3}/35 คะแนน ${s3 < 25 ? '(ควรเพิ่มรายละเอียดอัลกอริทึมและตารางงาน)' : ''}</div>
+        <div class="feedback-item"><strong>4. ผลลัพธ์ & อ้างอิง:</strong> ${s4}/20 คะแนน</div>
+    `;
 }
+
+// Initial Canvas Draw
+window.onload = function() {
+    drawGauge(0);
+    drawRadarChart([0, 0, 0, 0]);
+};
 </script>
 </body>
 </html>
