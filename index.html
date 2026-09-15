@@ -3,335 +3,1004 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Research Proposal Visual Canvas & Evaluator</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --primary-dark: #1d4ed8;
-            --bg: #f8fafc;
-            --card: #ffffff;
-            --text: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --success: #16a34a;
-            --danger: #dc2626;
+    <title>ระบบวิเคราะห์และแนะนำการเขียนโครงร่างวิจัยด้วย Gemini AI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js for visualization -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Sarabun & Inter Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Sarabun', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            800: '#1e40af',
+                        }
+                    }
+                }
+            }
         }
-
-        * { box-sizing: border-box; }
-        body { font-family: 'Sarabun', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+    </script>
+    <style>
+        body { font-family: 'Sarabun', 'Inter', sans-serif; background-color: #f8fafc; color: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        .header { text-align: center; margin-bottom: 24px; }
-        .header h1 { margin: 0; color: var(--primary-dark); font-size: 1.8rem; }
-        .header p { color: var(--text-muted); margin-top: 4px; }
-
-        .app-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; max-width: 1300px; margin: 0 auto; }
-        .card { background: var(--card); border-radius: 12px; border: 1px solid var(--border); padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-        
-        /* Tab Navigation */
-        .tab-buttons { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
-        .tab-btn { background: none; border: none; padding: 8px 16px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 6px; }
-        .tab-btn.active { background: #eff6ff; color: var(--primary); }
-
-        /* Form styling */
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .form-full { grid-column: span 2; }
-        .form-group { margin-bottom: 12px; }
-        label { display: block; font-weight: 600; font-size: 0.85rem; margin-bottom: 4px; }
-        input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.88rem; }
-        textarea { resize: vertical; min-height: 60px; }
-        
-        button.btn-eval { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 1rem; margin-top: 10px; }
-        button.btn-eval:hover { background: var(--primary-dark); }
-
-        /* Dashboard & Canvas Styles */
-        .canvas-container { display: flex; flex-direction: column; align-items: center; gap: 20px; }
-        .canvas-card { width: 100%; text-align: center; background: #fafafa; border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
-        canvas { max-width: 100%; height: auto; }
-
-        .verdict-box { margin-top: 12px; padding: 12px; border-radius: 6px; text-align: center; font-weight: bold; font-size: 1.1rem; }
-        .verdict-approved { background: #dcfce7; color: var(--success); }
-        .verdict-rejected { background: #fee2e2; color: var(--danger); }
-
-        .feedback-box { margin-top: 16px; text-align: left; }
-        .feedback-item { font-size: 0.85rem; padding: 8px; margin-bottom: 6px; border-left: 3px solid var(--primary); background: #f1f5f9; }
+        .pulse-subtle { animation: pulseSlow 2s infinite; }
+        @keyframes pulseSlow {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col antialiased">
 
-<div class="header">
-    <h1>Research Proposal Canvas & Evaluator</h1>
-    <p>ระบบวิเคราะห์และประเมินข้อเสนอโครงงานคอมพิวเตอร์ ด้วย HTML5 Canvas Dashboard</p>
-</div>
-
-<div class="app-layout">
-
-    <!-- ฝั่งที่ 1: กรอกข้อมูลและ Research Canvas -->
-    <div class="card">
-        <div class="tab-buttons">
-            <button class="tab-btn active" onclick="switchTab('form')">แบบฟอร์มเสนอโครงงาน (ข้อ 1-13)</button>
+<header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center space-x-3">
+            <div class="bg-gradient-to-tr from-blue-600 to-indigo-600 text-white p-2.5 rounded-xl shadow-md">
+                <i class="fa-solid fa-graduation-cap text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-800 leading-tight">ระบบวิเคราะห์ข้อเสนอโครงงานคอมพิวเตอร์</h1>
+                <p class="text-xs text-slate-500 font-medium flex items-center gap-2">
+                    <span>Proposal AI Writing Coach & Academic Evaluator</span>
+                    <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full text-[10px] font-semibold border border-blue-200">
+                        <i class="fa-solid fa-bolt text-[9px]"></i> Powered by Gemini 3 Flash
+                    </span>
+                </p>
+            </div>
         </div>
 
-        <form id="proposalForm">
-            <div id="tabForm" class="form-grid">
-                <div class="form-group form-full">
-                    <label>1. ชื่อโครงงาน</label>
-                    <input type="text" id="title" placeholder="เช่น ระบบวิเคราะห์ภาพถ่ายดาวเทียมเพื่อการเกษตร">
+        <div class="flex items-center gap-2">
+            <button onclick="loadSampleProposal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-file-arrow-down text-blue-600"></i> โหลดตัวอย่างโครงงาน
+            </button>
+            <button onclick="clearForm()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium px-3 py-2 rounded-lg transition flex items-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-rotate-left"></i> ล้างข้อมูล
+            </button>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- LEFT COLUMN: Proposal Editor Form -->
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-5 sm:p-6 space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-6 bg-blue-600 rounded-full"></span>
+                    <h2 class="font-bold text-base text-slate-800">ข้อมูลรายละเอียดโครงงาน (Proposal Form)</h2>
                 </div>
-                <div class="form-group">
-                    <label>2. ประเภทโครงงาน</label>
-                    <input type="text" id="type" placeholder="ซอฟต์แวร์ / สื่อ / IoT / ฮาร์ดแวร์">
+                <span class="text-xs text-slate-400">กรอกข้อมูลเพื่อประเมิน</span>
+            </div>
+
+            <form id="proposalForm" onsubmit="event.preventDefault(); triggerAnalysis();" class="space-y-4">
+                
+                <!-- Title Thai & English -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-heading text-blue-500"></i> ชื่อหัวข้อโครงงาน (Project Title)
+                        </label>
+                        <button type="button" onclick="generateTitles()" class="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1 hover:underline">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> ช่วยตั้งชื่อหัวข้อด้วย AI
+                        </button>
+                    </div>
+                    <div>
+                        <input type="text" id="titleTh" placeholder="ชื่อโครงงานภาษาไทย (เช่น: ระบบวิเคราะห์รอยโรคพืชด้วยคอมพิวเตอร์วิทัศน์)" class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    </div>
+                    <div>
+                        <input type="text" id="titleEn" placeholder="Project Title in English (e.g. Plant Disease Detection using Computer Vision)" class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>3. ชื่อผู้จัดทำโครงงาน (ข้อ 1-2)</label>
-                    <input type="text" id="authors" placeholder="ชื่อ-นามสกุล สมาชิก">
+
+                <!-- Category & Track Selection -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1">
+                            ประเภทโครงงาน (Project Category)
+                        </label>
+                        <select id="projectCategory" class="w-full text-sm px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="Artificial Intelligence / Machine Learning">ปัญญาประดิษฐ์ & Machine Learning</option>
+                            <option value="Web & Mobile Application">เว็บและแอปพลิเคชันมือถือ (Web/Mobile)</option>
+                            <option value="IoT & Embedded Systems">อินเทอร์เน็ตของสรรพสิ่ง (IoT / Systems)</option>
+                            <option value="Cybersecurity & Computer Network">ความมั่นคงปลอดภัยไซเบอร์ & เครือข่าย</option>
+                            <option value="Data Analytics & Big Data">การวิเคราะห์ข้อมูลขนาดใหญ่ (Big Data)</option>
+                            <option value="Game Development & AR/VR">การพัฒนาเกม และสื่อประสม (Game/VR)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide block mb-1">
+                            ระดับโครงงาน (Academic Level)
+                        </label>
+                        <select id="academicLevel" class="w-full text-sm px-3 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                            <option value="ปริญญาตรี (Undergraduate Senior Project)">ปริญญาตรี (Senior Project)</option>
+                            <option value="ปริญญาโท (Master Thesis)">ปริญญาโท (Master Thesis)</option>
+                            <option value="การแข่งขัน / นวัตกรรม (Innovation Contest)">การแข่งขัน / นวัตกรรม</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>4-5. ครูที่ปรึกษา / ร่วม</label>
-                    <input type="text" id="advisors" placeholder="ชื่อครูที่ปรึกษา">
+
+                <!-- Background & Motivation -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-align-left text-slate-400"></i> 1. ความสำคัญและความเป็นมา (Background & Motivation)
+                        </label>
+                        <button type="button" onclick="aiPolishing('background')" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i> ปรับสำนวน AI
+                        </button>
+                    </div>
+                    <textarea id="background" rows="3" placeholder="ระบุถึงปัญหา สาเหตุ ความสำคัญ และเหตุผลที่ต้องทำโครงงานนี้..." class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition custom-scrollbar"></textarea>
                 </div>
-                <div class="form-group">
-                    <label>6. ระยะเวลาดำเนินงาน</label>
-                    <input type="text" id="duration" placeholder="ระบุช่วงเวลาปฏิบัติงาน">
+
+                <!-- Objectives -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-bullseye text-slate-400"></i> 2. วัตถุประสงค์ของโครงงาน (Objectives)
+                        </label>
+                        <button type="button" onclick="aiPolishing('objectives')" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i> ปรับสำนวน AI
+                        </button>
+                    </div>
+                    <textarea id="objectives" rows="3" placeholder="ระบุเป้าหมายที่วัดผลได้ชัดเจน เป็นข้อๆ (เช่น 1. เพื่อออกแบบและพัฒนา... 2. เพื่อประเมินประสิทธิภาพ...)" class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition custom-scrollbar"></textarea>
                 </div>
-                <div class="form-group form-full">
-                    <label>7. แนวคิด ที่มา และความสำคัญ</label>
-                    <textarea id="rationale" placeholder="ระบุสภาพปัญหา ความจำเป็น และโซลูชัน..."></textarea>
+
+                <!-- Scope -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-crop-simple text-slate-400"></i> 3. ขอบเขตของโครงงาน (Scope & Limitations)
+                        </label>
+                        <button type="button" onclick="aiPolishing('scope')" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i> ปรับสำนวน AI
+                        </button>
+                    </div>
+                    <textarea id="scope" rows="3" placeholder="กำหนดขอบเขตประชากร/ข้อมูล เทคโนโลยีที่ใช้ ข้อจำกัดของการศึกษา..." class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition custom-scrollbar"></textarea>
                 </div>
-                <div class="form-group form-full">
-                    <label>8. วัตถุประสงค์ (ระบุเป็นข้อๆ)</label>
-                    <textarea id="objectives" placeholder="1) เพื่อ...&#10;2) เพื่อ..."></textarea>
+
+                <!-- Methodology & Tools -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-gears text-slate-400"></i> 4. วิธีดำเนินงานและเครื่องมือ (Methodology & Tools)
+                        </label>
+                        <button type="button" onclick="aiPolishing('methodology')" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i> ปรับสำนวน AI
+                        </button>
+                    </div>
+                    <textarea id="methodology" rows="3" placeholder="ขั้นตอนการทำงาน อัลกอริทึม ภาษา เครื่องมือ และกระบวนการทดสอบ..." class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition custom-scrollbar"></textarea>
                 </div>
-                <div class="form-group form-full">
-                    <label>9. หลักการและทฤษฎี</label>
-                    <textarea id="theory" placeholder="ทฤษฎี ภาษาโปรแกรม เทคโนโลยี หรือ Algorithm ที่เลือกใช้..."></textarea>
+
+                <!-- Expected Benefits -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-bold text-slate-700 uppercase tracking-wide flex items-center gap-1.5">
+                            <i class="fa-solid fa-award text-slate-400"></i> 5. ประโยชน์ที่คาดว่าจะได้รับ (Expected Outcomes)
+                        </label>
+                        <button type="button" onclick="aiPolishing('expectedResults')" class="text-[11px] bg-blue-50 hover:bg-blue-100 text-blue-700 px-2.5 py-1 rounded-md font-medium border border-blue-200 transition flex items-center gap-1">
+                            <i class="fa-solid fa-wand-magic-sparkles text-blue-500"></i> ปรับสำนวน AI
+                        </button>
+                    </div>
+                    <textarea id="expectedResults" rows="2" placeholder="ผลลัพธ์ที่เป็นรูปธรรม นวัตกรรม หรือประโยชน์ที่จะเกิดแก่ผู้ใช้งาน..." class="w-full text-sm px-3.5 py-2.5 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition custom-scrollbar"></textarea>
                 </div>
-                <div class="form-group form-full">
-                    <label>10-11. วิธีดำเนินงาน และ ขั้นตอนการปฏิบัติงาน</label>
-                    <textarea id="methodology" placeholder="ขั้นตอนการทำงาน วัสดุอุปกรณ์ งบประมาณ และตารางเวลา..."></textarea>
+
+                <!-- Submit Action Button -->
+                <div class="pt-2">
+                    <button type="submit" id="evalBtn" class="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white font-bold py-3.5 px-6 rounded-xl shadow-md hover:shadow-lg transition transform active:scale-[0.99] flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-microchip text-lg"></i>
+                        <span>เริ่มการวิเคราะห์และประเมินโครงร่างด้วย Gemini AI</span>
+                    </button>
                 </div>
-                <div class="form-group">
-                    <label>12. ผลที่คาดว่าจะได้รับ</label>
-                    <textarea id="expectedResults" placeholder="ประโยชน์หรือระบบที่คาดว่าจะได้รับ..."></textarea>
+            </form>
+        </div>
+
+        <!-- RIGHT COLUMN: Evaluation Dashboard, Grounding, Voice Coach & Chat -->
+        <div class="lg:col-span-5 space-y-5">
+            
+            <!-- Navigation Tabs -->
+            <div class="bg-white p-1.5 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between gap-1 text-xs font-medium">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="flex-1 py-2 px-3 rounded-lg text-blue-700 bg-blue-50 font-bold transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-chart-pie"></i> ผลประเมิน
+                </button>
+                <button onclick="switchTab('grounding')" id="tab-grounding" class="flex-1 py-2 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-globe"></i> งานวิจัยที่เกี่ยวข้อง
+                </button>
+                <button onclick="switchTab('chat')" id="tab-chat" class="flex-1 py-2 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5">
+                    <i class="fa-solid fa-comments"></i> คุยกับ AI Advisor
+                </button>
+            </div>
+
+            <!-- TAB 1: Evaluation Dashboard -->
+            <div id="content-dashboard" class="space-y-4">
+                
+                <!-- Welcome Empty State -->
+                <div id="emptyState" class="bg-white rounded-2xl border border-slate-200 p-8 text-center space-y-4 shadow-sm">
+                    <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto text-2xl">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-base">พร้อมสำหรับการวิเคราะห์ข้อเสนอโครงงาน</h3>
+                        <p class="text-xs text-slate-500 mt-1 max-w-xs mx-auto">กรอกข้อมูลในแบบฟอร์มด้านซ้าย หรือคลิก "โหลดตัวอย่างโครงงาน" จากนั้นกดปุ่มเริ่มการวิเคราะห์</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>13. เอกสารอ้างอิง</label>
-                    <textarea id="references" placeholder="ระบุแหล่งอ้างอิงมาตรฐาน..."></textarea>
+
+                <!-- Loading State Spinner -->
+                <div id="loadingState" class="hidden bg-white rounded-2xl border border-slate-200 p-10 text-center space-y-4 shadow-sm">
+                    <div class="inline-block animate-spin text-blue-600 text-3xl">
+                        <i class="fa-solid fa-circle-notch"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-slate-800 text-sm">Gemini AI กำลังอ่านและประเมินข้อเสนอโครงงาน...</h4>
+                        <p class="text-xs text-slate-500 mt-1">กำลังตรวจสอบความสอดคล้อง ความเป็นไปได้ และหลักการทางวิชาการ</p>
+                    </div>
+                </div>
+
+                <!-- Main Analysis Results Container -->
+                <div id="analysisResults" class="hidden space-y-4">
+                    
+                    <!-- Verdict & Score Banner -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                            <span id="verdictBadge" class="px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-slate-100 text-slate-700">
+                                Status
+                            </span>
+                            <div class="text-right">
+                                <span class="text-xs text-slate-400 block">คะแนนภาพรวม (Overall Score)</span>
+                                <span id="overallScoreText" class="text-2xl font-black text-slate-800">0/100</span>
+                            </div>
+                        </div>
+
+                        <!-- Summary Paragraph -->
+                        <div class="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/60" id="summaryText">
+                            สรุปผลการประเมินจะปรากฏที่นี่...
+                        </div>
+
+                        <!-- Gemini TTS Audio Coaching Player -->
+                        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200/70 p-3.5 rounded-xl flex items-center justify-between gap-3">
+                            <div class="flex items-center gap-2.5">
+                                <button id="playAudioBtn" onclick="playAIVoiceCoach()" class="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow transition flex-shrink-0">
+                                    <i class="fa-solid fa-volume-high text-sm"></i>
+                                </button>
+                                <div>
+                                    <div class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                        <span>AI Voice Coach Audio Summary</span>
+                                        <span class="text-[9px] bg-blue-200 text-blue-800 px-1.5 py-0.2 rounded">Gemini TTS</span>
+                                    </div>
+                                    <span id="ttsStatus" class="text-[11px] text-slate-500">คลิกเพื่อฟังเสียงสรุปข้อเสนอแนะ</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Radar Chart Canvas -->
+                        <div class="pt-2">
+                            <h4 class="text-xs font-bold text-slate-700 mb-2 flex items-center justify-between">
+                                <span><i class="fa-solid fa-chart-radar text-blue-500 mr-1"></i> คะแนนจำแนกตามมิติวิชาการ</span>
+                            </h4>
+                            <div class="h-48 w-full relative">
+                                <canvas id="scoresRadarChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strengths & Weaknesses Box -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-xl p-3.5 space-y-2">
+                            <h5 class="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                                <i class="fa-solid fa-circle-check text-emerald-600"></i> จุดแข็ง (Strengths)
+                            </h5>
+                            <ul id="strengthsList" class="text-xs text-emerald-900 space-y-1 list-disc pl-4"></ul>
+                        </div>
+                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3.5 space-y-2">
+                            <h5 class="text-xs font-bold text-amber-800 flex items-center gap-1">
+                                <i class="fa-solid fa-triangle-exclamation text-amber-600"></i> จุดที่ต้องปรับปรุง (Weaknesses)
+                            </h5>
+                            <ul id="weaknessesList" class="text-xs text-amber-900 space-y-1 list-disc pl-4"></ul>
+                        </div>
+                    </div>
+
+                    <!-- Actionable Recommendations & Rewrites -->
+                    <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3">
+                        <h4 class="font-bold text-sm text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
+                            <i class="fa-solid fa-list-check text-indigo-600"></i> คำแนะนำและข้อแก้ไขรายหัวข้อ (Detailed Recommendations)
+                        </h4>
+                        <div id="recommendationCards" class="space-y-3"></div>
+                    </div>
+
                 </div>
             </div>
 
-            <button type="button" class="btn-eval" onclick="processEvaluation()">วิเคราะห์ และวาด Canvas Dashboard</button>
-        </form>
+            <!-- TAB 2: Grounded Literature Search (Google Search Tool) -->
+            <div id="content-grounding" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div>
+                            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-1.5">
+                                <i class="fa-solid fa-globe text-blue-600"></i> ค้นหางานวิจัยและระบบใกล้เคียง (Prior Art Grounding)
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-0.5">ค้นหาบทความวิชาการ GitHub และระบบที่มีอยู่ในปัจจุบันด้วย Google Search</p>
+                        </div>
+                        <button onclick="performGroundingSearch()" class="text-xs bg-blue-600 hover:bg-blue-700 text-white font-medium px-3 py-1.5 rounded-lg transition shadow-sm flex items-center gap-1">
+                            <i class="fa-solid fa-magnifying-glass"></i> ค้นหาด้วย AI
+                        </button>
+                    </div>
+
+                    <div id="groundingLoading" class="hidden text-center py-8 space-y-2">
+                        <i class="fa-solid fa-spinner animate-spin text-blue-600 text-2xl"></i>
+                        <p class="text-xs text-slate-500">กำลังสืบค้นข้อมูลเทคโนโลยีและงานวิจัยจริงในระบบ...</p>
+                    </div>
+
+                    <div id="groundingResults" class="text-xs text-slate-600 space-y-3">
+                        <p class="text-slate-400 italic text-center py-6">กดปุ่ม "ค้นหาด้วย AI" เพื่อค้นหางานวิจัยและเทคโนโลยีที่เกี่ยวข้องกับหัวข้อของคุณ</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: Interactive Gemini Chat Advisor -->
+            <div id="content-chat" class="hidden space-y-4">
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm flex flex-col h-[520px]">
+                    <div class="p-3.5 border-b border-slate-100 bg-slate-50 rounded-t-2xl flex items-center gap-2">
+                        <div class="w-8 h-8 bg-blue-600 text-white rounded-full flex items-center justify-center font-bold text-xs">
+                            AI
+                        </div>
+                        <div>
+                            <h4 class="font-bold text-xs text-slate-800">Gemini Academic Mentor</h4>
+                            <span class="text-[10px] text-slate-500">ปรึกษาการปรับแก้ proposal, เครื่องมือ, หรือระเบียบวิธีวิจัย</span>
+                        </div>
+                    </div>
+
+                    <div id="chatBox" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs custom-scrollbar">
+                        <div class="bg-slate-100 text-slate-800 p-3 rounded-xl max-w-[85%] self-start">
+                            สวัสดีครับ! มีคำถามเกี่ยวกับการปรับแก้ข้อเสนอโครงงาน เครื่องมือ หรืออัลกอริทึม สอบถามอาจารย์ที่ปรึกษา AI ได้เลยครับ
+                        </div>
+                    </div>
+
+                    <div class="p-3 border-t border-slate-100 flex items-center gap-2">
+                        <input type="text" id="chatInput" onkeypress="if(event.key==='Enter') sendChatMessage()" placeholder="พิมพ์ข้อความสอบถาม AI Advisor..." class="flex-1 text-xs px-3 py-2 border border-slate-300 rounded-xl outline-none focus:border-blue-500">
+                        <button onclick="sendChatMessage()" class="bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold transition">
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
     </div>
+</main>
 
-    <!-- ฝั่งที่ 2: Canvas Visualizations & Evaluation Report -->
-    <div class="card canvas-container">
-        <h3>ผลการประเมินเชิงทัศนภาพ (Canvas Analytics)</h3>
-
-        <!-- Canvas 1: Gauge Chart -->
-        <div class="canvas-card">
-            <h4>คะแนนความสมบูรณ์รวม (Total Score)</h4>
-            <canvas id="gaugeCanvas" width="280" height="160"></canvas>
-            <div id="verdictBox" class="verdict-box" style="display:none;"></div>
+<!-- Modal for AI Title Generation -->
+<div id="titleModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-xl border border-slate-200">
+        <div class="flex items-center justify-between border-b pb-3">
+            <h3 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles text-blue-600"></i> ข้อเสนอแนะชื่อหัวข้อจาก AI (Suggested Titles)
+            </h3>
+            <button onclick="closeTitleModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
         </div>
-
-        <!-- Canvas 2: Radar Spider Chart -->
-        <div class="canvas-card">
-            <h4>การวิเคราะห์ศักยภาพ 4 มิติ (Radar Metrics)</h4>
-            <canvas id="radarCanvas" width="300" height="260"></canvas>
+        <div id="titleSuggestionsList" class="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
+            <!-- Dynamically populated -->
         </div>
-
-        <!-- Feedback Log -->
-        <div class="feedback-box" id="feedbackList">
-            <p style="text-align:center; color: var(--text-muted); font-size: 0.9rem;">
-                กดปุ่ม "วิเคราะห์" เพื่อสร้างกราฟ Canvas และรายงานผล
-            </p>
+        <div class="text-right pt-2 border-t">
+            <button onclick="closeTitleModal()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium px-4 py-2 rounded-lg">ปิด</button>
         </div>
     </div>
-
 </div>
 
+<!-- Footer -->
+<footer class="bg-white border-t border-slate-200 mt-10 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4">
+        ระบบวิเคราะห์และแนะนำการเขียนโครงร่างวิจัย (Computer Science Proposal AI Coach) • Powered by Gemini 3 Flash & TTS API
+    </div>
+</footer>
+
 <script>
-// --- HTML5 Canvas Drawing Functions ---
+// --- GLOBAL STATE & CONFIGS ---
+const apiKey = ""; // Gemini API Key managed at runtime by system
+let radarChartInstance = null;
+let currentEvaluationResult = null;
+let chatHistory = [];
 
-// 1. Draw Semi-Circle Gauge Chart
-function drawGauge(score) {
-    const canvas = document.getElementById('gaugeCanvas');
-    const ctx = canvas.getContext('2d');
-    const cx = canvas.width / 2;
-    const cy = canvas.height - 30;
-    const radius = 90;
+// API Endpoint URLs
+const GEMINI_TEXT_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+const GEMINI_TTS_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Background track
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, Math.PI, 2 * Math.PI);
-    ctx.lineWidth = 18;
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    // Progress track
-    const progressAngle = Math.PI + (score / 100) * Math.PI;
-    ctx.beginPath();
-    ctx.arc(cx, cy, radius, Math.PI, progressAngle);
-    ctx.lineWidth = 18;
-    ctx.strokeStyle = score >= 60 ? '#16a34a' : (score >= 40 ? '#ca8a04' : '#dc2626');
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    // Score Text
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 32px Sarabun, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(`${score}/100`, cx, cy - 15);
-
-    ctx.fillStyle = '#64748b';
-    ctx.font = '14px Sarabun, sans-serif';
-    ctx.fillText('คะแนนประเมินรวม', cx, cy + 15);
-}
-
-// 2. Draw 4-Axis Radar (Spider) Chart
-function drawRadarChart(scoresNormalized) {
-    const canvas = document.getElementById('radarCanvas');
-    const ctx = canvas.getContext('2d');
-    const cx = canvas.width / 2;
-    const cy = canvas.height / 2 + 10;
-    const radius = 80;
-
-    const labels = ['ข้อมูลทั่วไป', 'ที่มา & วัตถุประสงค์', 'ทฤษฎี & วิธีทำ', 'ผลลัพธ์ & อ้างอิง'];
-    const numAxes = labels.length;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Grid concentric circles
-    for (let level = 1; level <= 4; level++) {
-        ctx.beginPath();
-        const r = (radius / 4) * level;
-        for (let i = 0; i < numAxes; i++) {
-            const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
-            const x = cx + r * Math.cos(angle);
-            const y = cy + r * Math.sin(angle);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
+// Exponential backoff API fetch helper
+async function callGeminiApi(apiUrl, payload, retries = 3) {
+    let delay = 1000;
+    for (let i = 0; i < retries; i++) {
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                return await response.json();
+            }
+        } catch (err) {
+            console.debug("Retry API call iteration:", i);
         }
-        ctx.closePath();
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
     }
-
-    // Axes & Axis Labels
-    for (let i = 0; i < numAxes; i++) {
-        const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
-        const x = cx + radius * Math.cos(angle);
-        const y = cy + radius * Math.sin(angle);
-
-        ctx.beginPath();
-        ctx.moveTo(cx, cy);
-        ctx.lineTo(x, y);
-        ctx.strokeStyle = '#94a3b8';
-        ctx.stroke();
-
-        // Label position adjustment
-        const lx = cx + (radius + 28) * Math.cos(angle);
-        const ly = cy + (radius + 14) * Math.sin(angle);
-        ctx.fillStyle = '#334155';
-        ctx.font = '11px Sarabun, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(labels[i], lx, ly);
-    }
-
-    // Polygon Data Plot
-    ctx.beginPath();
-    for (let i = 0; i < numAxes; i++) {
-        const angle = (Math.PI * 2 / numAxes) * i - Math.PI / 2;
-        const r = radius * scoresNormalized[i];
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(37, 99, 235, 0.35)';
-    ctx.fill();
-    ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+    throw new Error("เกิดข้อผิดพลาดในการเชื่อมต่อกับ Gemini API โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ต");
 }
 
-// --- Logic Evaluation System ---
-function processEvaluation() {
-    const title = document.getElementById('title').value.trim();
-    const type = document.getElementById('type').value.trim();
-    const authors = document.getElementById('authors').value.trim();
-    const advisors = document.getElementById('advisors').value.trim();
-    const duration = document.getElementById('duration').value.trim();
-    const rationale = document.getElementById('rationale').value.trim();
+// Load Sample Proposal
+function loadSampleProposal() {
+    document.getElementById('titleTh').value = "ระบบตรวจจับและแจ้งเตือนโรคพืชในใบมะเขือเทศด้วยเทคนิคการเรียนรู้เชิงลึกแบบประมวลผลที่ขอบ";
+    document.getElementById('titleEn').value = "Real-time Tomato Leaf Disease Detection and Alert System using Edge Deep Learning";
+    document.getElementById('projectCategory').value = "Artificial Intelligence / Machine Learning";
+    document.getElementById('academicLevel').value = "ปริญญาตรี (Undergraduate Senior Project)";
+    
+    document.getElementById('background').value = "เกษตรกรผู้ปลูกมะเขือเทศมักประสบปัญหาโรคใบจุดและโรคลาแป้ง ซึ่งหากตรวจพบช้าจะแพร่ระบาดเร็วและสร้างความเสียหายรุนแรง ปัจจุบันการตรวจวินิจฉัยอาศัยผู้เชี่ยวชาญหรือการสังเกตด้วยตาเปล่าซึ่งช้าและผิดพลาดได้ง่าย งานวิจัยนี้จึงต้องการสร้างระบบตรวจจับอัตโนมัติบนบอร์ด Raspberry Pi เพื่อช่วยเกษตรกรในแปลงปลูก";
+    document.getElementById('objectives').value = "1. เพื่อพัฒนาโมเดล Deep Learning (YOLOv8-nano) สำหรับตรวจจับโรคใบมะเขือเทศ 5 ประเภท\n2. เพื่อสร้างระบบประมวลผลที่ขอบ (Edge Device) บน Raspberry Pi 4 พร้อมกล้อง\n3. เพื่อทดสอบความแม่นยำในการตรวจจับเทียบกับผู้เชี่ยวชาญ ไม่น้อยกว่า 85%";
+    document.getElementById('scope').value = "1. ข้อมูลรูปภาพใบมะเขือเทศจำนวน 5,000 ภาพจากชุดข้อมูล PlantVillage และแปลงจำลอง\n2. รองรับการจำแนกโรค 5 โรค ได้แก่ โรคใบจุดแบคทีเรีย, โรคใบไหม้ช้า, โรคราแป้ง, โรคใบหงิกเหลือง และใบปกติ\n3. ติดตั้งบนอุปกรณ์ Raspberry Pi 4 และส่งการแจ้งเตือนผ่าน Telegram Bot";
+    document.getElementById('methodology').value = "1. รวบรวมและทำ Data Augmentation ชุดข้อมูลภาพใบมะเขือเทศ\n2. เทรนโมเดล YOLOv8-nano ด้วย PyTorch และทำการ Model Quantization (INT8) เพื่อรันบน Edge Device\n3. เขียนโปรแกรมควบคุมด้วย Python บน Raspberry Pi และเชื่อมต่อ Telegram API\n4. วัดประสิทธิภาพด้วย Precision, Recall, mAP และวัดเวลา latency ในการประมวลผลต่อเฟรม";
+    document.getElementById('expectedResults').value = "1. ได้โมเดลตรวจจับโรคพืชที่มีความแม่นยำสูงและรันบน Edge Device ได้จริงในเวลาเรียลไทม์\n2. เกษตรกรสามารถได้รับการแจ้งเตือนโรคพืชล่วงหน้าผ่านแอปพลิเคชัน Telegram ได้ทันท่วงที";
+}
+
+function clearForm() {
+    document.getElementById('proposalForm').reset();
+    document.getElementById('emptyState').classList.remove('hidden');
+    document.getElementById('analysisResults').classList.add('hidden');
+}
+
+function switchTab(tabName) {
+    ['dashboard', 'grounding', 'chat'].forEach(t => {
+        const btn = document.getElementById(`tab-${t}`);
+        const content = document.getElementById(`content-${t}`);
+        if (t === tabName) {
+            btn.className = "flex-1 py-2 px-3 rounded-lg text-blue-700 bg-blue-50 font-bold transition flex items-center justify-center gap-1.5 shadow-sm";
+            content.classList.remove('hidden');
+        } else {
+            btn.className = "flex-1 py-2 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition flex items-center justify-center gap-1.5";
+            content.classList.add('hidden');
+        }
+    });
+}
+
+async function triggerAnalysis() {
+    const titleTh = document.getElementById('titleTh').value.trim();
+    const titleEn = document.getElementById('titleEn').value.trim();
+    const category = document.getElementById('projectCategory').value;
+    const level = document.getElementById('academicLevel').value;
+    const background = document.getElementById('background').value.trim();
     const objectives = document.getElementById('objectives').value.trim();
-    const theory = document.getElementById('theory').value.trim();
+    const scope = document.getElementById('scope').value.trim();
     const methodology = document.getElementById('methodology').value.trim();
-    const results = document.getElementById('expectedResults').value.trim();
-    const references = document.getElementById('references').value.trim();
+    const expectedResults = document.getElementById('expectedResults').value.trim();
 
-    // 1. General Info Score (Max 10)
-    let s1 = 0;
-    if (title) s1 += 2;
-    if (type) s1 += 2;
-    if (authors) s1 += 2;
-    if (advisors) s1 += 2;
-    if (duration) s1 += 2;
-
-    // 2. Rationale & Objectives (Max 35)
-    let s2 = 0;
-    if (rationale.length > 80) s2 += 15; else if (rationale.length > 20) s2 += 8;
-    if (objectives.includes('1') || objectives.includes('-')) s2 += 20; else if (objectives.length > 15) s2 += 10;
-
-    // 3. Theory & Methodology (Max 35)
-    let s3 = 0;
-    if (theory.length > 40) s3 += 15; else if (theory.length > 10) s3 += 7;
-    if (methodology.length > 60) s3 += 20; else if (methodology.length > 15) s3 += 10;
-
-    // 4. Expected Results & References (Max 20)
-    let s4 = 0;
-    if (results.length > 20) s4 += 10; else if (results.length > 5) s4 += 5;
-    if (references.length > 20 || references.includes('http')) s4 += 10; else if (references.length > 5) s4 += 5;
-
-    const totalScore = s1 + s2 + s3 + s4;
-
-    // Normalized scores for Radar Chart (0.0 to 1.0 scale)
-    const normScores = [s1 / 10, s2 / 35, s3 / 35, s4 / 20];
-
-    // Render Canvas Visualizations
-    drawGauge(totalScore);
-    drawRadarChart(normScores);
-
-    // Verdict Output
-    const verdictBox = document.getElementById('verdictBox');
-    verdictBox.style.display = 'block';
-    if (totalScore >= 60) {
-        verdictBox.innerText = 'ผลการพิจารณา: อนุมัติ (Pass)';
-        verdictBox.className = 'verdict-box verdict-approved';
-    } else {
-        verdictBox.innerText = 'ผลการพิจารณา: ควรปรับปรุง (Needs Work)';
-        verdictBox.className = 'verdict-box verdict-rejected';
+    if (!titleTh || !background || !objectives) {
+        showToast("กรุณากรอกข้อมูลอย่างน้อย ชื่อหัวข้อ ความเป็นมา และวัตถุประสงค์");
+        return;
     }
 
-    // Detailed Log Feedback
-    const feedbackList = document.getElementById('feedbackList');
-    feedbackList.innerHTML = `
-        <div class="feedback-item"><strong>1. ข้อมูลทั่วไป:</strong> ${s1}/10 คะแนน</div>
-        <div class="feedback-item"><strong>2. ที่มา & วัตถุประสงค์:</strong> ${s2}/35 คะแนน ${s2 < 25 ? '(ควรแจกลูกย่อยวัตถุประสงค์)' : ''}</div>
-        <div class="feedback-item"><strong>3. ทฤษฎี & วิธีดำเนินงาน:</strong> ${s3}/35 คะแนน ${s3 < 25 ? '(ควรเพิ่มรายละเอียดอัลกอริทึมและตารางงาน)' : ''}</div>
-        <div class="feedback-item"><strong>4. ผลลัพธ์ & อ้างอิง:</strong> ${s4}/20 คะแนน</div>
-    `;
+    // UI Loading state
+    document.getElementById('emptyState').classList.add('hidden');
+    document.getElementById('analysisResults').classList.add('hidden');
+    document.getElementById('loadingState').classList.remove('hidden');
+
+    const prompt = `
+คุณเป็นอาจารย์ผู้เชี่ยวชาญประเมินข้อเสนอโครงงานคอมพิวเตอร์และนวัตกรรมดิจิทัล (Academic Computer Science Proposal Evaluator)
+กรุณาตรวจวิเคราะห์ข้อเสนอโครงงานต่อไปนี้อย่างถี่ถ้วนตามเกณฑ์มาตรฐานวิชาการ:
+
+[ข้อมูลโครงงาน]
+- ชื่อภาษาไทย: ${titleTh}
+- ชื่อภาษาอังกฤษ: ${titleEn}
+- ประเภท: ${category}
+- ระดับ: ${level}
+- ความสำคัญและความเป็นมา: ${background}
+- วัตถุประสงค์: ${objectives}
+- ขอบเขต: ${scope}
+- วิธีดำเนินงาน/เครื่องมือ: ${methodology}
+- ประโยชน์ที่คาดว่าจะได้รับ: ${expectedResults}
+
+วิเคราะห์และให้คะแนนตามเกณฑ์ 5 ด้าน (ด้านละ 20 คะแนน รวม 100 คะแนนเต็ม):
+1. titleScore: ความชัดเจน สอดคล้อง และเป็นวิชาการของชื่อหัวข้อ
+2. objectiveScore: วัตถุประสงค์เจาะจง วัดผลได้ และเป็นไปได้
+3. scopeScore: การกำหนดขอบเขตประชากร/เทคโนโลยีชัดเจนไม่กว้างหรือแคบเกินไป
+4. methodologyScore: ความสมบูรณ์ของเครื่องมือ ขั้นตอน และอัลกอริทึม
+5. outcomeScore: คุณค่าและผลลัพธ์ที่เป็นรูปธรรม
+
+ตัดสิน overall verdict เป็นอย่างใดอย่างหนึ่ง: "APPROVED" (ผ่านเกณฑ์ >= 80), "REVISION_NEEDED" (ต้องปรับแก้ 60-79), "REJECTED" (ไม่ผ่าน < 60)
+พร้อมให้จุดแข็ง (strengths), จุดอ่อน (weaknesses), และคำแนะนำการแก้ไขรายหัวข้อ (recommendations) โดยให้ตัวอย่างข้อความที่ปรับแก้ไขแล้ว (revisedExample) เป็นภาษาไทยเชิงวิชาการ
+`;
+
+    const schema = {
+        type: "OBJECT",
+        properties: {
+            score: { type: "INTEGER" },
+            verdict: { type: "STRING" },
+            summary: { type: "STRING" },
+            strengths: { type: "ARRAY", items: { type: "STRING" } },
+            weaknesses: { type: "ARRAY", items: { type: "STRING" } },
+            sectionScores: {
+                type: "OBJECT",
+                properties: {
+                    titleScore: { type: "INTEGER" },
+                    objectiveScore: { type: "INTEGER" },
+                    scopeScore: { type: "INTEGER" },
+                    methodologyScore: { type: "INTEGER" },
+                    outcomeScore: { type: "INTEGER" }
+                },
+                required: ["titleScore", "objectiveScore", "scopeScore", "methodologyScore", "outcomeScore"]
+            },
+            recommendations: {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        section: { type: "STRING" },
+                        issue: { type: "STRING" },
+                        suggestion: { type: "STRING" },
+                        revisedExample: { type: "STRING" }
+                    },
+                    required: ["section", "issue", "suggestion", "revisedExample"]
+                }
+            }
+        },
+        required: ["score", "verdict", "summary", "strengths", "weaknesses", "sectionScores", "recommendations"]
+    };
+
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: schema
+        }
+    };
+
+    try {
+        const responseData = await callGeminiApi(GEMINI_TEXT_URL, payload);
+        const jsonText = responseData.candidates?.[0]?.content?.parts?.[0]?.text;
+        
+        if (jsonText) {
+            currentEvaluationResult = JSON.parse(jsonText);
+            renderEvaluationResult(currentEvaluationResult);
+        } else {
+            throw new Error("ไม่พบข้อมูลตอบกลับในรูปแบบที่ถูกต้อง");
+        }
+    } catch (err) {
+        showToast(err.message || "เกิดข้อผิดพลาดในการประเมิน");
+    } finally {
+        document.getElementById('loadingState').classList.add('hidden');
+    }
 }
 
-// Initial Canvas Draw
-window.onload = function() {
-    drawGauge(0);
-    drawRadarChart([0, 0, 0, 0]);
-};
+function renderEvaluationResult(res) {
+    document.getElementById('analysisResults').classList.remove('hidden');
+
+    // Score & Verdict Badge
+    const scoreText = document.getElementById('overallScoreText');
+    scoreText.innerText = `${res.score}/100`;
+
+    const badge = document.getElementById('verdictBadge');
+    if (res.verdict === "APPROVED") {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-emerald-100 text-emerald-800 border border-emerald-300";
+        badge.innerHTML = '<i class="fa-solid fa-circle-check mr-1"></i> อนุมัติผ่านเกณฑ์ (APPROVED)';
+    } else if (res.verdict === "REVISION_NEEDED") {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-amber-100 text-amber-800 border border-amber-300";
+        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1"></i> ควรปรับปรุงแก้ไข (REVISION NEEDED)';
+    } else {
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase bg-rose-100 text-rose-800 border border-rose-300";
+        badge.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1"></i> ไม่ผ่านเกณฑ์ (REJECTED)';
+    }
+
+    document.getElementById('summaryText').innerText = res.summary;
+
+    // Strengths & Weaknesses
+    const strList = document.getElementById('strengthsList');
+    strList.innerHTML = res.strengths.map(s => `<li>${s}</li>`).join('');
+
+    const weakList = document.getElementById('weaknessesList');
+    weakList.innerHTML = res.weaknesses.map(w => `<li>${w}</li>`).join('');
+
+    // Recommendations Cards
+    const recContainer = document.getElementById('recommendationCards');
+    recContainer.innerHTML = res.recommendations.map((rec, idx) => `
+        <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/50 hover:bg-white transition space-y-2">
+            <div class="flex items-center justify-between">
+                <span class="font-bold text-xs text-blue-800 bg-blue-100/70 px-2.5 py-0.5 rounded-md">
+                    <i class="fa-solid fa-file-signature mr-1"></i> ${rec.section}
+                </span>
+            </div>
+            <p class="text-xs text-slate-700"><strong>ข้อบกพร่อง:</strong> ${rec.issue}</p>
+            <p class="text-xs text-slate-600"><strong>ข้อเสนอแนะ:</strong> ${rec.suggestion}</p>
+            <div class="bg-white p-2.5 rounded-lg border border-slate-200 text-xs text-slate-800 space-y-1">
+                <div class="text-[10px] font-bold text-indigo-600 uppercase flex items-center justify-between">
+                    <span><i class="fa-solid fa-pen-to-square"></i> ตัวอย่างสำนวนที่แก้ไขแล้ว</span>
+                    <button onclick="copyToClipboard(\`${rec.revisedExample.replace(/"/g, '&quot;')}\`)" class="text-slate-400 hover:text-slate-600 lowercase font-normal">
+                        <i class="fa-regular fa-copy"></i> คัดลอก
+                    </button>
+                </div>
+                <div class="italic leading-relaxed text-slate-700">${rec.revisedExample}</div>
+            </div>
+        </div>
+    `).join('');
+
+    // Render Radar Chart
+    renderRadarChart(res.sectionScores);
+}
+
+function renderRadarChart(scores) {
+    const ctx = document.getElementById('scoresRadarChart').getContext('2d');
+    if (radarChartInstance) {
+        radarChartInstance.destroy();
+    }
+
+    radarChartInstance = new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['ชื่อหัวข้อ', 'วัตถุประสงค์', 'ขอบเขตโครงงาน', 'เครื่องมือ/วิธีดำเนินงาน', 'ประโยชน์ผลลัพธ์'],
+            datasets: [{
+                label: 'คะแนนประเมิน (เต็ม 20)',
+                data: [
+                    scores.titleScore || 12,
+                    scores.objectiveScore || 12,
+                    scores.scopeScore || 12,
+                    scores.methodologyScore || 12,
+                    scores.outcomeScore || 12
+                ],
+                backgroundColor: 'rgba(37, 99, 235, 0.2)',
+                borderColor: 'rgba(37, 99, 235, 1)',
+                borderWidth: 2,
+                pointBackgroundColor: 'rgba(37, 99, 235, 1)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { color: '#e2e8f0' },
+                    grid: { color: '#e2e8f0' },
+                    suggestedMin: 0,
+                    suggestedMax: 20,
+                    ticks: { stepSize: 5, font: { size: 9 } },
+                    pointLabels: { font: { family: 'Sarabun', size: 10, weight: 'bold' } }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+// --- GEMINI TTS VOICE COACH FEATURE ---
+async function playAIVoiceCoach() {
+    if (!currentEvaluationResult) {
+        showToast("กรุณาทำการประเมินข้อเสนอก่อนฟังเสียงสรุป");
+        return;
+    }
+
+    const ttsStatus = document.getElementById('ttsStatus');
+    const playBtn = document.getElementById('playAudioBtn');
+
+    ttsStatus.innerText = "กำลังสร้างเสียงบรรยาย AI...";
+    playBtn.disabled = true;
+    playBtn.classList.add('opacity-50');
+
+    const coachText = `สวัสดีครับ สรุปผลการประเมินโครงงาน ${currentEvaluationResult.summary} คะแนนรวมของคุณคือ ${currentEvaluationResult.score} คะแนน คำแนะนำสำคัญคือ ${currentEvaluationResult.recommendations[0]?.suggestion || 'ควรปรับปรุงรายละเอียดระเบียบวิธีวิจัยให้ชัดเจนครับ'}`;
+
+    const payload = {
+        contents: [{
+            parts: [{ text: `พูดด้วยน้ำเสียงอาจารย์ที่ปรึกษาที่เป็นกันเองและให้กำลังใจ: ${coachText}` }]
+        }],
+        generationConfig: {
+            responseModalities: ["AUDIO"],
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName: "Puck" }
+                }
+            }
+        }
+    };
+
+    try {
+        const res = await callGeminiApi(GEMINI_TTS_URL, payload);
+        const candidate = res.candidates?.[0];
+        const part = candidate?.content?.parts?.[0];
+        const inlineData = part?.inlineData;
+
+        if (inlineData && inlineData.data) {
+            const pcmData = base64ToArrayBuffer(inlineData.data);
+            const pcm16 = new Int16Array(pcmData);
+            
+            // Extract sample rate from mimeType e.g. "audio/L16;rate=24000"
+            let rate = 24000;
+            if (inlineData.mimeType) {
+                const match = inlineData.mimeType.match(/rate=(\d+)/);
+                if (match) rate = parseInt(match[1], 10);
+            }
+
+            const wavBlob = pcmToWav(pcm16, rate);
+            const audioUrl = URL.createObjectURL(wavBlob);
+            const audio = new Audio(audioUrl);
+
+            ttsStatus.innerText = "กำลังเล่นเสียงสรุปข้อเสนอแนะ...";
+            audio.play();
+            audio.onended = () => {
+                ttsStatus.innerText = "ฟังจบแล้ว - คลิกเพื่อเล่นซ้ำ";
+                playBtn.disabled = false;
+                playBtn.classList.remove('opacity-50');
+            };
+        } else {
+            throw new Error("ไม่สามารถสร้างไฟล์เสียงได้");
+        }
+    } catch (err) {
+        ttsStatus.innerText = "เกิดข้อผิดพลาดในการโหลดเสียง";
+        playBtn.disabled = false;
+        playBtn.classList.remove('opacity-50');
+        showToast(err.message || "ไม่สามารถเล่นเสียง AI ได้");
+    }
+}
+
+// PCM 16bit to WAV Helper
+function pcmToWav(pcm16, sampleRate) {
+    const buffer = new ArrayBuffer(44 + pcm16.length * 2);
+    const view = new DataView(buffer);
+
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + pcm16.length * 2, true);
+    writeString(view, 8, 'WAVE');
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // Raw PCM
+    view.setUint16(22, 1, true); // Mono
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeString(view, 36, 'data');
+    view.setUint32(40, pcm16.length * 2, true);
+
+    let offset = 44;
+    for (let i = 0; i < pcm16.length; i++, offset += 2) {
+        view.setInt16(offset, pcm16[i], true);
+    }
+    return new Blob([buffer], { type: 'audio/wav' });
+}
+
+function writeString(view, offset, string) {
+    for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
+    }
+}
+
+function base64ToArrayBuffer(base64) {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+
+// --- AI SECTION POLISHER FEATURE ---
+async function aiPolishing(fieldId) {
+    const textarea = document.getElementById(fieldId);
+    const text = textarea.value.trim();
+
+    if (!text) {
+        showToast("กรุณากรอกเนื้อหาในช่องนี้ก่อนใช้ AI ปรับสำนวน");
+        return;
+    }
+
+    const fieldLabels = {
+        background: "ความเป็นมาและความสำคัญ",
+        objectives: "วัตถุประสงค์ของโครงงาน",
+        scope: "ขอบเขตของโครงงาน",
+        methodology: "วิธีดำเนินงานและเครื่องมือ",
+        expectedResults: "ประโยชน์ที่คาดว่าจะได้รับ"
+    };
+
+    const prompt = `คุณเป็นอาจารย์ที่ปรึกษาโครงงานคอมพิวเตอร์ ช่วยเขียนปรับแต่งข้อความส่วน "${fieldLabels[fieldId]}" ให้เป็นภาษาไทยเชิงวิชาการที่ถูกต้อง กระชับ สละสลวย และถูกต้องตามมาตรฐานโครงงานคอมพิวเตอร์:
+ข้อความเดิม: "${text}"
+
+ตอบกลับเฉพาะข้อความที่ปรับแต่งใหม่แล้วเท่านั้น โดยไม่ต้องมีคำเกริ่นหรือคำอธิบายเพิ่มเติม`;
+
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }]
+    };
+
+    const origBorder = textarea.style.borderColor;
+    textarea.style.borderColor = "#3b82f6";
+    textarea.placeholder = "AI กำลังปรับแต่งสำนวน...";
+
+    try {
+        const res = await callGeminiApi(GEMINI_TEXT_URL, payload);
+        const polished = res.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (polished) {
+            textarea.value = polished.trim();
+            showToast("ปรับแต่งสำนวนด้วย AI เรียบร้อยแล้ว!");
+        }
+    } catch (err) {
+        showToast("ไม่สามารถปรับแต่งสำนวนได้");
+    } finally {
+        textarea.style.borderColor = origBorder;
+    }
+}
+
+// --- AI SMART TITLE GENERATOR ---
+async function generateTitles() {
+    const category = document.getElementById('projectCategory').value;
+    const background = document.getElementById('background').value.trim() || "การประยุกต์ใช้เทคโนโลยีดิจิทัล";
+
+    const prompt = `เสนอชื่อหัวข้อโครงงานคอมพิวเตอร์ระดับวิชาการในหมวด ${category} จำนวน 3 ข้อเสนอ (พร้อมชื่อภาษาไทยและภาษาอังกฤษ) โดยอ้างอิงจากบริบท: "${background}"
+
+ตอบกลับในรูปแบบ JSON Array ดังนี้:
+[
+  { "titleTh": "ชื่อไทย 1", "titleEn": "English Title 1" },
+  { "titleTh": "ชื่อไทย 2", "titleEn": "English Title 2" },
+  { "titleTh": "ชื่อไทย 3", "titleEn": "English Title 3" }
+]`;
+
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" }
+    };
+
+    try {
+        const res = await callGeminiApi(GEMINI_TEXT_URL, payload);
+        const jsonText = res.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (jsonText) {
+            const list = JSON.parse(jsonText);
+            const container = document.getElementById('titleSuggestionsList');
+            container.innerHTML = list.map((item, idx) => `
+                <div onclick="selectTitle('${item.titleTh.replace(/'/g, "\\'")}', '${item.titleEn.replace(/'/g, "\\'")}')" class="p-3 border border-slate-200 rounded-xl hover:border-blue-500 hover:bg-blue-50/50 cursor-pointer transition space-y-1">
+                    <div class="font-bold text-xs text-slate-800">${idx+1}. ${item.titleTh}</div>
+                    <div class="text-[11px] text-slate-500 italic">${item.titleEn}</div>
+                </div>
+            `).join('');
+            document.getElementById('titleModal').classList.remove('hidden');
+        }
+    } catch (err) {
+        showToast("ไม่สามารถสร้างตัวอย่างชื่อหัวข้อได้");
+    }
+}
+
+function selectTitle(th, en) {
+    document.getElementById('titleTh').value = th;
+    document.getElementById('titleEn').value = en;
+    closeTitleModal();
+    showToast("เลือกชื่อหัวข้อเรียบร้อยแล้ว");
+}
+
+function closeTitleModal() {
+    document.getElementById('titleModal').classList.add('hidden');
+}
+
+// --- GOOGLE SEARCH GROUNDING FOR LITERATURE SEARCH ---
+async function performGroundingSearch() {
+    const titleTh = document.getElementById('titleTh').value.trim();
+    const category = document.getElementById('projectCategory').value;
+
+    if (!titleTh) {
+        showToast("กรุณากรอกชื่อหัวข้อโครงงานก่อนทำการค้นหา");
+        return;
+    }
+
+    document.getElementById('groundingLoading').classList.remove('hidden');
+    document.getElementById('groundingResults').innerHTML = "";
+
+    const userPrompt = `ค้นหาบทความวิชาการ งานวิจัยที่เกี่ยวข้อง หรือระบบคอมพิวเตอร์ที่คล้ายคลึงกันในปัจจุบันสำหรับหัวข้อ: "${titleTh}" (หมวดหมู่: ${category})
+สรุปงานวิจัย/ระบบใกล้เคียง 3-4 โครงการ พร้อมระบุเทคโนโลยีที่ใช้และข้อเปรียบเทียบเชิงวิชาการเป็นภาษาไทย`;
+
+    const payload = {
+        contents: [{ parts: [{ text: userPrompt }] }],
+        tools: [{ "google_search": {} }]
+    };
+
+    try {
+        const res = await callGeminiApi(GEMINI_TEXT_URL, payload);
+        const candidate = res.candidates?.[0];
+        const text = candidate?.content?.parts?.[0]?.text;
+        
+        let sources = [];
+        const groundingMetadata = candidate?.groundingMetadata;
+        if (groundingMetadata && groundingMetadata.groundingAttributions) {
+            sources = groundingMetadata.groundingAttributions
+                .map(attr => ({ uri: attr.web?.uri, title: attr.web?.title }))
+                .filter(s => s.uri && s.title);
+        }
+
+        let html = `<div class="prose prose-slate text-xs space-y-2 leading-relaxed">${text.replace(/\n/g, '<br>')}</div>`;
+
+        if (sources.length > 0) {
+            html += `<div class="mt-4 pt-3 border-t border-slate-200">
+                <h5 class="font-bold text-xs text-slate-700 mb-1.5"><i class="fa-solid fa-link text-blue-500"></i> แหล่งอ้างอิงจากการสืบค้น real-time:</h5>
+                <ul class="space-y-1">`;
+            sources.forEach(src => {
+                html += `<li><a href="${src.uri}" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1 text-[11px]"><i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ${src.title}</a></li>`;
+            });
+            html += `</ul></div>`;
+        }
+
+        document.getElementById('groundingResults').innerHTML = html;
+    } catch (err) {
+        document.getElementById('groundingResults').innerHTML = `<p class="text-rose-500 text-center">เกิดข้อผิดพลาดในการสืบค้นข้อมูล: ${err.message}</p>`;
+    } finally {
+        document.getElementById('groundingLoading').classList.add('hidden');
+    }
+}
+
+// --- AI ADVISOR CHAT FEATURE ---
+async function sendChatMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chatBox = document.getElementById('chatBox');
+    chatBox.innerHTML += `<div class="bg-blue-600 text-white p-3 rounded-xl max-w-[85%] self-end font-medium">${msg}</div>`;
+    input.value = "";
+    chatBox.scrollTop = chatBox.scrollHeight;
+
+    chatHistory.push({ role: "user", parts: [{ text: msg }] });
+
+    const systemPrompt = "คุณคืออาจารย์ที่ปรึกษาโครงงานคอมพิวเตอร์ ตอบคำถามนักศึกษาเกี่ยวกับการวิจัย อัลกอริทึม ภาษาที่ใช้ เครื่องมือ และการเขียนรายงานโครงงานอย่างเป็นมิตร กระชับ และเป็นมืออาชีพ";
+
+    const payload = {
+        contents: chatHistory,
+        systemInstruction: { parts: [{ text: systemPrompt }] }
+    };
+
+    try {
+        const res = await callGeminiApi(GEMINI_TEXT_URL, payload);
+        const replyText = res.candidates?.[0]?.content?.parts?.[0]?.text || "ขออภัยครับ ไม่สามารถประมวลผลคำตอบได้";
+
+        chatHistory.push({ role: "model", parts: [{ text: replyText }] });
+
+        chatBox.innerHTML += `<div class="bg-slate-100 text-slate-800 p-3 rounded-xl max-w-[85%] self-start leading-relaxed">${replyText.replace(/\n/g, '<br>')}</div>`;
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) {
+        chatBox.innerHTML += `<div class="bg-rose-50 text-rose-700 p-2.5 rounded-xl text-xs self-start">เกิดข้อผิดพลาดในการรับคำตอบ</div>`;
+    }
+}
+
+// Clipboard Helper
+function copyToClipboard(text) {
+    const dummy = document.createElement("textarea");
+    document.body.appendChild(dummy);
+    dummy.value = text;
+    dummy.select();
+    document.execCommand("copy");
+    document.body.removeChild(dummy);
+    showToast("คัดลอกลง Clipboard แล้ว!");
+}
+
+// Custom Toast Notification
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'fixed bottom-5 right-5 bg-slate-900 text-white text-xs font-medium px-4 py-3 rounded-xl shadow-lg z-50 transition transform duration-300 flex items-center gap-2';
+    toast.innerHTML = `<i class="fa-solid fa-circle-info text-blue-400"></i> ${message}`;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
 </script>
 </body>
 </html>
