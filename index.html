@@ -1,0 +1,412 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@500;600;700&family=Sarabun:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; }
+
+  .cpf-root {
+    font-family: 'Sarabun', sans-serif;
+    background:
+      radial-gradient(circle, #E4DFC9 1px, transparent 1px) 0 0/22px 22px,
+      #FBF8F1;
+    color: #26332B;
+    padding: 30px 16px 60px;
+    min-height: 100%;
+  }
+
+  .cpf-wrap { max-width: 780px; margin: 0 auto; }
+
+  .cpf-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .cpf-badge {
+    width: 46px; height: 46px; border-radius: 10px;
+    background: #2F4538; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #FBF8F1; font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 18px;
+    transform: rotate(-3deg);
+  }
+  .cpf-title { font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 21px; color: #2F4538; margin: 0; }
+  .cpf-sub { font-size: 13px; color: #6E6A57; margin: 4px 0 0; }
+
+  .cpf-sheet {
+    background: #FFFFFF;
+    border: 1.5px solid #D8D2B8;
+    border-radius: 12px;
+    padding: 26px 24px;
+    box-shadow: 0 2px 0 #EDE7D2;
+  }
+
+  .cpf-sec { margin-bottom: 22px; }
+  .cpf-sec:last-child { margin-bottom: 0; }
+  .cpf-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #E8734A; color: #fff; font-size: 12.5px; font-weight: 700;
+    font-family: 'Kanit', sans-serif; margin-right: 8px; flex-shrink: 0;
+  }
+  .cpf-label {
+    display: flex; align-items: center;
+    font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 15px;
+    color: #2F4538; margin-bottom: 8px;
+  }
+  .cpf-hint { font-size: 12px; color: #8B8672; margin: -4px 0 8px 32px; }
+
+  .cpf-input, .cpf-textarea {
+    width: 100%; font-family: 'Sarabun', sans-serif; font-size: 14px;
+    padding: 9px 11px; border: 1px solid #D8D2B8; border-radius: 7px;
+    background: #FEFDF9; color: #26332B;
+  }
+  .cpf-input:focus, .cpf-textarea:focus, button:focus-visible {
+    outline: 2px solid #2F4538; outline-offset: 1px;
+  }
+  .cpf-textarea { resize: vertical; line-height: 1.6; }
+  .cpf-row2 { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cpf-row2 > div { flex: 1 1 220px; }
+
+  .cpf-list-item { display: flex; gap: 8px; margin-bottom: 7px; align-items: center; }
+  .cpf-list-item .cpf-input { flex: 1; }
+  .cpf-mini-btn {
+    border: none; background: #F1ECD9; color: #6E6A57; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 6px; font-size: 16px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+  }
+  .cpf-mini-btn:hover { background: #E4DFC9; }
+  .cpf-add-btn {
+    border: 1px dashed #B9B29A; background: transparent; color: #6E6A57;
+    cursor: pointer; font-family: 'Sarabun', sans-serif; font-size: 13px; font-weight: 600;
+    padding: 6px 12px; border-radius: 7px; margin-top: 2px;
+  }
+  .cpf-add-btn:hover { background: #F1ECD9; }
+
+  table.cpf-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  table.cpf-table th {
+    background: #EEF0E6; color: #2F4538; font-family: 'Kanit', sans-serif; font-weight: 600;
+    font-size: 12.5px; padding: 7px 8px; border: 1px solid #D8D2B8; text-align: left;
+  }
+  table.cpf-table td { border: 1px solid #D8D2B8; padding: 4px; vertical-align: top; }
+  table.cpf-table td input { border: none; width: 100%; padding: 6px 7px; font-family: 'Sarabun', sans-serif; font-size: 13px; background: transparent; }
+  table.cpf-table td input:focus { outline: 1.5px solid #2F4538; border-radius: 4px; }
+  table.cpf-table td.cpf-tdbtn { width: 34px; text-align: center; }
+
+  .cpf-actions { display: flex; gap: 10px; margin-top: 26px; flex-wrap: wrap; }
+  .cpf-btn-primary, .cpf-btn-secondary {
+    font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14.5px;
+    padding: 11px 20px; border-radius: 8px; cursor: pointer; border: none;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cpf-btn-primary { background: #E8734A; color: #fff; flex: 1; justify-content: center; }
+  .cpf-btn-primary:disabled { background: #D8C6BB; cursor: not-allowed; }
+  .cpf-btn-secondary { background: #EEF0E6; color: #2F4538; }
+
+  .cpf-spin { animation: cpf-spin 0.9s linear infinite; display: inline-block; }
+  @keyframes cpf-spin { to { transform: rotate(360deg); } }
+
+  .cpf-feedback { margin-top: 22px; animation: cpf-fade .35s ease; }
+  @keyframes cpf-fade { from { opacity:0; transform: translateY(5px);} to {opacity:1; transform:none;} }
+
+  .cpf-score-card {
+    background: #2F4538; border-radius: 12px; padding: 18px 20px;
+    display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+  }
+  .cpf-score-circle {
+    width: 64px; height: 64px; border-radius: 50%; background: #FBF8F1;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    font-family: 'Kanit', sans-serif; font-weight: 700; font-size: 19px; color: #2F4538;
+    border: 4px solid #E8734A;
+  }
+  .cpf-score-text-label { font-size: 11.5px; color: #C9D3C4; font-weight: 600; }
+  .cpf-score-text-main { font-family: 'Kanit', sans-serif; font-size: 15.5px; color: #FBF8F1; font-weight: 600; margin-top: 2px; }
+
+  .cpf-fb-block { background: #fff; border: 1px solid #D8D2B8; border-radius: 10px; padding: 16px 18px; margin-bottom: 14px; }
+  .cpf-fb-title { font-family: 'Kanit', sans-serif; font-weight: 600; font-size: 14.5px; color: #2F4538; margin: 0 0 10px; }
+
+  .cpf-sec-row { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed #E4DFC9; }
+  .cpf-sec-row:last-child { border-bottom: none; }
+  .cpf-sec-name { font-size: 13px; font-weight: 600; color: #26332B; }
+  .cpf-sec-comment { font-size: 12.5px; color: #6E6A57; margin-top: 2px; }
+  .cpf-status-pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; height: fit-content; }
+  .cpf-status-ok { background: #DCEAD9; color: #3D6B45; }
+  .cpf-status-warn { background: #FCEBD5; color: #A6631B; }
+  .cpf-status-missing { background: #F7DCD6; color: #A6402E; }
+
+  .cpf-sticky { background: #FFEEA8; border-radius: 4px; padding: 16px 18px; box-shadow: 2px 3px 0 rgba(0,0,0,.06); transform: rotate(-0.4deg); }
+
+  .cpf-note { font-size: 12px; color: #8B8672; margin-top: 20px; text-align: center; }
+
+  @media print {
+    .cpf-root { background: #fff; padding: 0; }
+    .cpf-actions, .cpf-feedback, .cpf-mini-btn, .cpf-add-btn { display: none !important; }
+    .cpf-sheet { border: none; box-shadow: none; }
+  }
+</style>
+
+<div class="cpf-root">
+  <div class="cpf-wrap">
+    <div class="cpf-head">
+      <div class="cpf-badge">คง</div>
+      <div>
+        <p class="cpf-title">แบบเสนอโครงงานคอมพิวเตอร์ (ฉบับดิจิทัล)</p>
+        <p class="cpf-sub">กรอกข้อมูลออนไลน์ พิมพ์เก็บไว้ หรือให้ AI ช่วยตรวจและแนะนำก่อนส่งจริง</p>
+      </div>
+    </div>
+
+    <div class="cpf-sheet">
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">1</span>ชื่อโครงงาน</div>
+        <input class="cpf-input" id="f_title" placeholder="เช่น ระบบแจ้งเตือนรดน้ำต้นไม้อัตโนมัติด้วย IoT">
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">2</span>ประเภทโครงงาน</div>
+        <input class="cpf-input" id="f_type" list="cpf_type_list" placeholder="เลือกหรือพิมพ์เอง">
+        <datalist id="cpf_type_list">
+          <option value="การพัฒนาโปรแกรมประยุกต์">
+          <option value="การพัฒนาเว็บไซต์">
+          <option value="ฮาร์ดแวร์ / สิ่งประดิษฐ์">
+          <option value="โครงงานทดลอง">
+          <option value="โครงงานสำรวจ/รวบรวมข้อมูล">
+        </datalist>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">3</span>ชื่อผู้จัดทำโครงงาน</div>
+        <div id="f_members"></div>
+        <button class="cpf-add-btn" onclick="cpfAddListItem('f_members','เช่น ด.ช. สมชาย ใจดี')">+ เพิ่มผู้จัดทำ</button>
+      </div>
+
+      <div class="cpf-sec cpf-row2">
+        <div>
+          <div class="cpf-label"><span class="cpf-num">4</span>ครูที่ปรึกษาโครงงาน</div>
+          <input class="cpf-input" id="f_advisor">
+        </div>
+        <div>
+          <div class="cpf-label"><span class="cpf-num">5</span>ครูที่ปรึกษาร่วม</div>
+          <input class="cpf-input" id="f_coadvisor">
+        </div>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">6</span>ระยะเวลาดำเนินงาน</div>
+        <input class="cpf-input" id="f_duration" placeholder="เช่น 1 มิถุนายน 2569 – 30 กันยายน 2569">
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">7</span>แนวคิด ที่มา และความสำคัญ</div>
+        <textarea class="cpf-textarea" id="f_background" rows="4" placeholder="อธิบายปัญหาหรือแรงบันดาลใจที่ทำให้เกิดโครงงานนี้"></textarea>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">8</span>วัตถุประสงค์</div>
+        <div id="f_objectives"></div>
+        <button class="cpf-add-btn" onclick="cpfAddListItem('f_objectives','เช่น เพื่อพัฒนาระบบ...')">+ เพิ่มวัตถุประสงค์</button>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">9</span>หลักการและทฤษฎี</div>
+        <textarea class="cpf-textarea" id="f_theory" rows="4" placeholder="ทฤษฎี เทคโนโลยี หรือหลักการที่นำมาใช้ในโครงงาน"></textarea>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">10</span>วิธีดำเนินงาน</div>
+        <table class="cpf-table">
+          <thead><tr><th>ขั้นตอนการดำเนินงาน</th><th>วัสดุอุปกรณ์</th><th>งบประมาณ</th><th>ผู้รับผิดชอบ</th><th></th></tr></thead>
+          <tbody id="f_methodrows"></tbody>
+        </table>
+        <button class="cpf-add-btn" onclick="cpfAddTableRow('f_methodrows',4)">+ เพิ่มแถว</button>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">11</span>ขั้นตอนการปฏิบัติ</div>
+        <table class="cpf-table">
+          <thead><tr><th>วัน/เดือน/ปี</th><th>กิจกรรม</th><th>ผู้รับผิดชอบ</th><th></th></tr></thead>
+          <tbody id="f_timeline"></tbody>
+        </table>
+        <button class="cpf-add-btn" onclick="cpfAddTableRow('f_timeline',3)">+ เพิ่มแถว</button>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">12</span>ผลที่คาดว่าจะได้รับ</div>
+        <div id="f_results"></div>
+        <button class="cpf-add-btn" onclick="cpfAddListItem('f_results','เช่น ได้ระบบที่ใช้งานได้จริง...')">+ เพิ่มรายการ</button>
+      </div>
+
+      <div class="cpf-sec">
+        <div class="cpf-label"><span class="cpf-num">13</span>เอกสารอ้างอิง</div>
+        <div id="f_refs"></div>
+        <button class="cpf-add-btn" onclick="cpfAddListItem('f_refs','เช่น ชื่อผู้แต่ง. (ปี). ชื่อเรื่อง. แหล่งที่มา.')">+ เพิ่มเอกสารอ้างอิง</button>
+      </div>
+
+      <div class="cpf-actions">
+        <button class="cpf-btn-primary" id="cpf_review_btn" onclick="cpfReview()">
+          <span id="cpf_review_icon">✓</span> ตรวจสอบและให้คำแนะนำด้วย AI
+        </button>
+        <button class="cpf-btn-secondary" onclick="window.print()">🖨️ พิมพ์ / บันทึก PDF</button>
+      </div>
+    </div>
+
+    <div id="cpf_feedback_zone"></div>
+
+    <p class="cpf-note">ข้อมูลที่กรอกจะถูกเก็บไว้ในหน้านี้เท่านั้น (ไม่บันทึกถาวร) — โปรดพิมพ์หรือคัดลอกเก็บไว้ก่อนปิดหน้าต่าง</p>
+  </div>
+</div>
+
+<script>
+  function cpfAddListItem(containerId, placeholder, value) {
+    const c = document.getElementById(containerId);
+    const row = document.createElement('div');
+    row.className = 'cpf-list-item';
+    row.innerHTML = `
+      <input class="cpf-input" placeholder="${placeholder}" value="${value ? value.replace(/"/g,'&quot;') : ''}">
+      <button class="cpf-mini-btn" onclick="this.parentElement.remove()" aria-label="ลบ">✕</button>
+    `;
+    c.appendChild(row);
+  }
+
+  function cpfAddTableRow(bodyId, cols) {
+    const tbody = document.getElementById(bodyId);
+    const tr = document.createElement('tr');
+    let tds = '';
+    for (let i = 0; i < cols; i++) tds += `<td><input placeholder=""></td>`;
+    tds += `<td class="cpf-tdbtn"><button class="cpf-mini-btn" onclick="this.closest('tr').remove()" aria-label="ลบแถว">✕</button></td>`;
+    tr.innerHTML = tds;
+    tbody.appendChild(tr);
+  }
+
+  // seed initial rows
+  ['f_members','f_objectives','f_results','f_refs'].forEach(id => {
+    cpfAddListItem(id, '');
+    cpfAddListItem(id, '');
+  });
+  cpfAddTableRow('f_methodrows', 4);
+  cpfAddTableRow('f_methodrows', 4);
+  cpfAddTableRow('f_timeline', 3);
+  cpfAddTableRow('f_timeline', 3);
+
+  function cpfCollectList(containerId) {
+    return Array.from(document.querySelectorAll(`#${containerId} input`))
+      .map(i => i.value.trim()).filter(Boolean);
+  }
+
+  function cpfCollectTable(bodyId, headers) {
+    const rows = Array.from(document.querySelectorAll(`#${bodyId} tr`));
+    return rows.map(tr => {
+      const inputs = Array.from(tr.querySelectorAll('input')).map(i => i.value.trim());
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = inputs[i] || '');
+      return obj;
+    }).filter(r => Object.values(r).some(v => v));
+  }
+
+  function cpfGatherForm() {
+    return {
+      title: document.getElementById('f_title').value.trim(),
+      type: document.getElementById('f_type').value.trim(),
+      members: cpfCollectList('f_members'),
+      advisor: document.getElementById('f_advisor').value.trim(),
+      coadvisor: document.getElementById('f_coadvisor').value.trim(),
+      duration: document.getElementById('f_duration').value.trim(),
+      background: document.getElementById('f_background').value.trim(),
+      objectives: cpfCollectList('f_objectives'),
+      theory: document.getElementById('f_theory').value.trim(),
+      method_steps: cpfCollectTable('f_methodrows', ['ขั้นตอน','วัสดุอุปกรณ์','งบประมาณ','ผู้รับผิดชอบ']),
+      timeline: cpfCollectTable('f_timeline', ['วันที่','กิจกรรม','ผู้รับผิดชอบ']),
+      expected_results: cpfCollectList('f_results'),
+      references: cpfCollectList('f_refs'),
+    };
+  }
+
+  function cpfStatusPill(status) {
+    const map = {
+      'ครบถ้วน': 'cpf-status-ok',
+      'ควรเพิ่มเติม': 'cpf-status-warn',
+      'ยังไม่ได้กรอก': 'cpf-status-missing',
+    };
+    return `<span class="cpf-status-pill ${map[status] || 'cpf-status-warn'}">${status}</span>`;
+  }
+
+  async function cpfReview() {
+    const btn = document.getElementById('cpf_review_btn');
+    const icon = document.getElementById('cpf_review_icon');
+    const zone = document.getElementById('cpf_feedback_zone');
+    const data = cpfGatherForm();
+
+    btn.disabled = true;
+    icon.textContent = '';
+    icon.innerHTML = '<span class="cpf-spin">⟳</span>';
+    btn.lastChild.textContent = ' กำลังตรวจสอบ...';
+
+    const system = `คุณเป็นครูที่ปรึกษาโครงงานคอมพิวเตอร์ระดับมัธยมศึกษา ทำหน้าที่ตรวจแบบเสนอโครงงานของนักเรียนและให้คำแนะนำอย่างสร้างสรรค์ก่อนอนุมัติ ตอบกลับเป็น JSON เท่านั้น ห้ามมีข้อความอื่นนอกเหนือจาก JSON ห้ามใส่ markdown fence รูปแบบ JSON ต้องเป็นดังนี้:
+{"readiness_score": 0-100, "section_feedback": [{"section": "ชื่อหัวข้อ", "status": "ครบถ้วน|ควรเพิ่มเติม|ยังไม่ได้กรอก", "comment": "คำแนะนำสั้นๆ 1 ประโยค"}], "overall_comment": "ภาพรวม 1-2 ประโยค", "suggestions": ["ข้อเสนอแนะที่ทำได้จริง"]}
+section_feedback ต้องมีครบทุกหัวข้อต่อไปนี้ตามลำดับ: "ชื่อโครงงาน", "ประเภทโครงงาน", "ผู้จัดทำและครูที่ปรึกษา", "ระยะเวลาดำเนินงาน", "แนวคิด ที่มา และความสำคัญ", "วัตถุประสงค์", "หลักการและทฤษฎี", "วิธีดำเนินงาน", "ขั้นตอนการปฏิบัติ", "ผลที่คาดว่าจะได้รับ", "เอกสารอ้างอิง"
+ถ้าหัวข้อใดว่างเปล่าให้ status เป็น "ยังไม่ได้กรอก" เสมอ suggestions มี 2-5 ข้อ กระชับ นำไปทำต่อได้จริง`;
+
+    const user = `ช่วยตรวจแบบเสนอโครงงานคอมพิวเตอร์ต่อไปนี้:\n\n${JSON.stringify(data, null, 2)}`;
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-6",
+          max_tokens: 1000,
+          system: system,
+          messages: [{ role: "user", content: user }],
+        })
+      });
+      if (!response.ok) throw new Error("API error");
+      const resJson = await response.json();
+      const text = resJson.content.map(b => b.text || '').join('\n');
+      const cleaned = text.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(cleaned);
+      cpfRenderFeedback(result);
+    } catch (e) {
+      zone.innerHTML = `<div class="cpf-feedback"><div class="cpf-fb-block" style="border-color:#E3A99B;"><p style="color:#A6402E;font-size:13px;margin:0;">เกิดข้อผิดพลาดในการตรวจสอบ กรุณาลองใหม่อีกครั้ง</p></div></div>`;
+    } finally {
+      btn.disabled = false;
+      icon.innerHTML = '✓';
+      btn.lastChild.textContent = ' ตรวจสอบและให้คำแนะนำด้วย AI';
+    }
+  }
+
+  function cpfRenderFeedback(result) {
+    const zone = document.getElementById('cpf_feedback_zone');
+    const score = result.readiness_score ?? 0;
+    const scoreColor = score >= 75 ? '#3D6B45' : score >= 50 ? '#A6631B' : '#A6402E';
+
+    const sectionRows = (result.section_feedback || []).map(s => `
+      <div class="cpf-sec-row">
+        <div>
+          <div class="cpf-sec-name">${s.section}</div>
+          <div class="cpf-sec-comment">${s.comment}</div>
+        </div>
+        ${cpfStatusPill(s.status)}
+      </div>
+    `).join('');
+
+    const suggestions = (result.suggestions || []).map(s => `<li style="margin-bottom:6px;">${s}</li>`).join('');
+
+    zone.innerHTML = `
+      <div class="cpf-feedback">
+        <div class="cpf-score-card">
+          <div class="cpf-score-circle" style="border-color:${scoreColor}">${score}</div>
+          <div>
+            <div class="cpf-score-text-label">ความพร้อมของโครงงาน (เต็ม 100)</div>
+            <div class="cpf-score-text-main">${result.overall_comment || ''}</div>
+          </div>
+        </div>
+        <div class="cpf-fb-block">
+          <p class="cpf-fb-title">ผลตรวจแยกตามหัวข้อ</p>
+          ${sectionRows}
+        </div>
+        <div class="cpf-sticky">
+          <p class="cpf-fb-title" style="margin-bottom:8px;">💡 ข้อเสนอแนะจากครูที่ปรึกษา AI</p>
+          <ul style="margin:0;padding-left:18px;font-size:13px;color:#4A4636;">${suggestions}</ul>
+        </div>
+      </div>
+    `;
+    zone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+</script>
